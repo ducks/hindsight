@@ -1,0 +1,93 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Ingest incident topics from dev.discourse.org
+#
+# Usage:
+#   bin/ingest-incidents [--since YYYY-MM-DD] [--limit N]
+#
+# Requires MCP discourse-dev server to be available
+
+require "json"
+require "fileutils"
+require "optparse"
+
+options = {
+  since: nil,
+  limit: 100,
+  output_dir: File.expand_path("../data/raw", __dir__)
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: bin/ingest-incidents [options]"
+
+  opts.on("--since DATE", "Only fetch incidents since this date (YYYY-MM-DD)") do |date|
+    options[:since] = date
+  end
+
+  opts.on("--limit N", Integer, "Max number of topics to fetch (default: 100)") do |n|
+    options[:limit] = n
+  end
+
+  opts.on("--output DIR", "Output directory for raw incident data") do |dir|
+    options[:output_dir] = dir
+  end
+
+  opts.on("-h", "--help", "Show this help") do
+    puts opts
+    exit
+  end
+end.parse!
+
+# Ensure output directory exists
+FileUtils.mkdir_p(options[:output_dir])
+
+puts "Hindsight Incident Ingestion"
+puts "=" * 50
+puts "Fetching incidents from dev.discourse.org..."
+puts "Output: #{options[:output_dir]}"
+puts "Limit: #{options[:limit]}"
+puts "Since: #{options[:since] || 'all time'}"
+puts
+
+# TODO: Use MCP to query dev.discourse.org for incident topics
+# For now, this is a placeholder that shows the structure
+
+# Example search queries to implement:
+SEARCH_QUERIES = [
+  "tag:incident",
+  "tag:alert",
+  "category:alerts",
+  "#incident",
+]
+
+puts "Search queries to implement:"
+SEARCH_QUERIES.each { |q| puts "  - #{q}" }
+puts
+puts "Next steps:"
+puts "1. Integrate MCP client for dev.discourse.org"
+puts "2. Query for incident topics using filters above"
+puts "3. Save raw topic JSON to #{options[:output_dir]}/topic-{id}.json"
+puts "4. Build topic parser to extract incident structure"
+puts
+puts "Example output structure:"
+puts JSON.pretty_generate({
+  topic_id: 187807,
+  title: "southpaw was unable to cleanly decommission southpaw20260203",
+  category: "infrastructure",
+  tags: ["incident", "yyz2"],
+  created_at: "2026-07-14T20:19:29Z",
+  posts: [
+    {
+      post_number: 1,
+      username: "saj",
+      created_at: "2026-07-14T20:19:29Z",
+      raw: "Alert description...",
+    }
+  ],
+  metadata: {
+    alert_type: "decommission_failure",
+    cluster: "southpaw20260203",
+    fleet: "yyz2"
+  }
+})
