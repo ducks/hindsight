@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Ingest incident topics from dev.discourse.org
+# Ingest incident topics from dev.discourse.org via MCP
 #
 # Usage:
 #   bin/ingest-incidents [--since YYYY-MM-DD] [--limit N]
 #
-# Requires MCP discourse-dev server to be available
+# Requires: Claude Code with discourse-dev MCP server configured
 
 require "json"
 require "fileutils"
@@ -39,55 +39,34 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-# Ensure output directory exists
 FileUtils.mkdir_p(options[:output_dir])
 
 puts "Hindsight Incident Ingestion"
 puts "=" * 50
-puts "Fetching incidents from dev.discourse.org..."
+puts "Fetching incidents from dev.discourse.org via MCP..."
 puts "Output: #{options[:output_dir]}"
 puts "Limit: #{options[:limit]}"
 puts "Since: #{options[:since] || 'all time'}"
 puts
 
-# TODO: Use MCP to query dev.discourse.org for incident topics
-# For now, this is a placeholder that shows the structure
-
-# Example search queries to implement:
-SEARCH_QUERIES = [
-  "tag:incident",
-  "tag:alert",
-  "category:alerts",
-  "#incident",
+# Tags to search for incident-related topics
+INCIDENT_TAGS = %w[
+  incident
+  alert
+  outage
+  degraded-performance
+  postmortem
 ]
 
-puts "Search queries to implement:"
-SEARCH_QUERIES.each { |q| puts "  - #{q}" }
+puts "Searching for topics with tags: #{INCIDENT_TAGS.join(', ')}"
 puts
-puts "Next steps:"
-puts "1. Integrate MCP client for dev.discourse.org"
-puts "2. Query for incident topics using filters above"
-puts "3. Save raw topic JSON to #{options[:output_dir]}/topic-{id}.json"
-puts "4. Build topic parser to extract incident structure"
+puts "NOTE: This script is meant to be run via Claude Code with MCP access."
+puts "It will call the discourse-dev MCP server to fetch topics."
 puts
-puts "Example output structure:"
-puts JSON.pretty_generate({
-  topic_id: 187807,
-  title: "southpaw was unable to cleanly decommission southpaw20260203",
-  category: "infrastructure",
-  tags: ["incident", "yyz2"],
-  created_at: "2026-07-14T20:19:29Z",
-  posts: [
-    {
-      post_number: 1,
-      username: "saj",
-      created_at: "2026-07-14T20:19:29Z",
-      raw: "Alert description...",
-    }
-  ],
-  metadata: {
-    alert_type: "decommission_failure",
-    cluster: "southpaw20260203",
-    fleet: "yyz2"
-  }
-})
+puts "If you're running this directly, you'll need to implement MCP client calls."
+puts
+puts "Example MCP calls needed:"
+puts "  - mcp__discourse-dev__discourse_filter_topics(tag: 'incident', limit: #{options[:limit]})"
+puts "  - mcp__discourse-dev__discourse_read_topic(topic_id: X, post_limit: 50)"
+puts
+puts "Run this via Claude Code with: 'ingest incident topics from dev.discourse.org'"

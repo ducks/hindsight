@@ -1,0 +1,6 @@
+# Incident data (may contain sensitive internal info)
+data/
+
+# Nix build artifacts
+result
+result-*
