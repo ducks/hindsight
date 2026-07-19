@@ -1,0 +1,10 @@
+[package]
+name = "hindsight"
+version = "2026.7.18"
+edition = "2021"
+description = "Incident knowledge base in llm-wiki form: corpus tools and MCP server"
+license = "MIT"
+repository = "https://github.com/ducks/hindsight"
+
+[dependencies]
+serde_json = "1"
