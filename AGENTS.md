@@ -155,9 +155,11 @@ Append-only. One line per operation:
 ## Sources
 
 The schema above is source-neutral; everything specific to fetching from
-one source lives in a skill under `.claude/skills/ingest-<source>/`
-(plain markdown; non-Claude agents just read the file). Each source skill
-defines:
+one source lives in a skill under `agents/<source>/<skill>/SKILL.md`
+(e.g. `agents/discourse/ingester/SKILL.md`), leaving room for a source
+to grow more skills than ingestion. The files use the standard skill
+format (frontmatter + markdown), so a skill-aware runtime can mount them
+and any other agent can just read them. Each ingester skill defines:
 
 - how to fetch an incident (tools, filters)
 - the raw dump filename convention and its JSON shape
@@ -169,7 +171,7 @@ Ingesting from a source you have a skill for: use it. Adding a new
 source: copy the shape of an existing skill; the corpus layers do not
 change.
 
-Current sources: [discourse](.claude/skills/ingest-discourse/SKILL.md).
+Current sources: [discourse](agents/discourse/ingester/SKILL.md).
 
 ## Operations
 
