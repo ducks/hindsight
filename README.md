@@ -71,11 +71,38 @@ And because pattern pages are distilled playbooks, they double as scenario
 feedstock for [replaybook](https://github.com/ducks/replaybook), turning real
 incidents into training material.
 
+## Usage
+
+Build (Rust; on NixOS just `nix-shell` in the repo):
+
+```
+cargo build --release
+```
+
+Commands (all respect `--data <dir>` and the resolution order above):
+
+```
+hindsight init    # scaffold a corpus directory
+hindsight serve   # MCP server (stdio) over the corpus
+hindsight lint    # broken links + index coverage check
+hindsight path    # print the resolved corpus path
+```
+
+Register with Claude Code:
+
+```
+claude mcp add hindsight -- /path/to/hindsight serve
+```
+
+The server exposes three read-only tools: `search` (term search, all-terms
+matches rank first), `get_page` (read one page), `list` (index or a
+directory). No LLM inside; the calling agent does the reasoning.
+
 ## Roadmap
 
 - [x] Corpus format and schema (AGENTS.md)
-- [ ] Ingest the backlog of raw incidents, prove the format
-- [ ] `hindsight init` - scaffold a corpus directory
-- [ ] MCP server: `search`, `get_page`, `list` over a corpus, so any agent
-      can use it
+- [x] Ingest the backlog of raw incidents, prove the format
+- [x] `hindsight init` - scaffold a corpus directory
+- [x] MCP server (stdio): `search`, `get_page`, `list` over a corpus
+- [ ] Remote transport (HTTP) + auth, for hosting a central corpus
 - [ ] Captain Hindsight: alert-driven investigation agent built on top
