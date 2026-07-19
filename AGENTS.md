@@ -177,7 +177,8 @@ change.
 Current sources:
 [discourse](agents/discourse/ingester/SKILL.md),
 [files](agents/files/ingester/SKILL.md),
-[github](agents/github/ingester/SKILL.md).
+[github](agents/github/ingester/SKILL.md),
+[pagerduty](agents/pagerduty/ingester/SKILL.md).
 
 ## Operations
 
