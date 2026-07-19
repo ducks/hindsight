@@ -39,7 +39,7 @@ public.
 
 ```
 <corpus>/
-├── raw/                # immutable source dumps: topic-<id>.json
+├── raw/                # immutable source dumps, named per source
 └── wiki/
     ├── index.md        # catalog: every page, one line each
     ├── log.md          # append-only operations record
@@ -50,15 +50,17 @@ public.
 
 ## Page types
 
-### Incident page (`incidents/YYYYMMDD-<topic_id>.md`)
+### Incident page (`incidents/YYYYMMDD-<source_id>.md`)
 
 The unit of ingestion. YYYYMMDD is the incident date (not the post-mortem
-publication date, when they differ).
+publication date, when they differ). `source_id` is the incident's id in
+its source system (a Discourse topic id, a PagerDuty incident id, ...);
+see Sources below.
 
 ```markdown
 ---
-topic_id: 185467
-source: https://dev.discourse.org/t/185467
+source_id: 185467
+source: https://meta.discourse.org/t/185467
 raw: raw/topic-185467.json
 date: 2026-06-04
 severity: critical | major | minor | unknown
@@ -150,12 +152,31 @@ Append-only. One line per operation:
 
 `+` created, `~` updated, `-` removed. Never rewrite old entries.
 
+## Sources
+
+The schema above is source-neutral; everything specific to fetching from
+one source lives in a skill under `.claude/skills/ingest-<source>/`
+(plain markdown; non-Claude agents just read the file). Each source skill
+defines:
+
+- how to fetch an incident (tools, filters)
+- the raw dump filename convention and its JSON shape
+- how source fields map to incident frontmatter (`source_id`, `source`,
+  `raw`, `date`)
+- source-specific quirks worth knowing at ingest time
+
+Ingesting from a source you have a skill for: use it. Adding a new
+source: copy the shape of an existing skill; the corpus layers do not
+change.
+
+Current sources: [discourse](.claude/skills/ingest-discourse/SKILL.md).
+
 ## Operations
 
 ### Ingest
 
-Input: a raw topic dump in `<corpus>/raw/` (or a topic ID to fetch via the
-discourse MCP tools, saving the dump first).
+Input: a raw dump in `<corpus>/raw/` (or an id to fetch from a source,
+saving the dump first; fetch mechanics are per-source, see Sources).
 
 1. Read the raw topic in full, all posts.
 2. Write or update the incident page.
