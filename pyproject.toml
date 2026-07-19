@@ -1,0 +1,19 @@
+[project]
+name = "hindsight"
+version = "20260717"
+description = "Incident knowledge base with vector search"
+requires-python = ">=3.11"
+dependencies = [
+    "chromadb>=0.4.0",
+    "mcp>=1.0.0",
+    "sentence-transformers>=2.0.0",
+]
+
+[project.scripts]
+hindsight-server = "hindsight.server:main"
+hindsight-index = "hindsight.index:main"
+hindsight-search = "hindsight.search:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
