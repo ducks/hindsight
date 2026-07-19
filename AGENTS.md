@@ -166,12 +166,17 @@ and any other agent can just read them. Each ingester skill defines:
 - how source fields map to incident frontmatter (`source_id`, `source`,
   `raw`, `date`)
 - source-specific quirks worth knowing at ingest time
+- its testing status (exercised against a real corpus, or mapping
+  guidance not yet exercised), so an agent knows whether it is following
+  a proven path or a sketch
 
 Ingesting from a source you have a skill for: use it. Adding a new
 source: copy the shape of an existing skill; the corpus layers do not
 change.
 
-Current sources: [discourse](agents/discourse/ingester/SKILL.md).
+Current sources:
+[discourse](agents/discourse/ingester/SKILL.md),
+[files](agents/files/ingester/SKILL.md).
 
 ## Operations
 

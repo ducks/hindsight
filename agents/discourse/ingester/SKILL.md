@@ -9,6 +9,9 @@ Fetch mechanics and field mapping for Discourse-sourced incidents. The
 corpus procedure itself (which pages to write and update) is AGENTS.md's
 Ingest operation; this skill only covers the Discourse-specific parts.
 
+Status: exercised; the seed corpus (35 incidents) was built with this
+mapping from real topics.
+
 ## Fetching
 
 Use the discourse MCP tools (requires a discourse MCP server):
