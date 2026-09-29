@@ -17,6 +17,8 @@ pub struct FileChange {
     pub status: char,
     pub added: u32,
     pub deleted: u32,
+    /// (start, count) ranges of the old file this change removed.
+    pub removed: Vec<(u32, u32)>,
 }
 
 pub struct SymbolChange {
@@ -170,6 +172,7 @@ fn parse_diff(diff: &str, commit: &mut Commit) {
                 status: 'M',
                 added: 0,
                 deleted: 0,
+                removed: Vec::new(),
             });
             current = Some(commit.files.len() - 1);
             continue;
@@ -181,6 +184,10 @@ fn parse_diff(diff: &str, commit: &mut Commit) {
         }
         if line.starts_with("deleted file mode") {
             commit.files[idx].status = 'D';
+            continue;
+        }
+        if let Some(range) = hunk_removed(line) {
+            commit.files[idx].removed.push(range);
             continue;
         }
         if line.starts_with("+++") || line.starts_with("---") || line.starts_with("Binary files") {
@@ -235,12 +242,34 @@ fn parse_diff(diff: &str, commit: &mut Commit) {
     }
 }
 
+/// The old-file range a hunk header removes: `@@ -a,b +c,d @@` with
+/// b defaulting to 1 and a zero count meaning pure addition.
+fn hunk_removed(line: &str) -> Option<(u32, u32)> {
+    let rest = line.strip_prefix("@@ -")?;
+    let end = rest.find(' ')?;
+    let old = &rest[..end];
+    let (start, count) = match old.split_once(',') {
+        Some((s, c)) => (s.parse().ok()?, c.parse().ok()?),
+        None => (old.parse().ok()?, 1),
+    };
+    if count == 0 {
+        return None;
+    }
+    Some((start, count))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn parses_a_record() {
+        assert_eq!(
+            hunk_removed("@@ -2185,2 +2185,2 @@ class Topic"),
+            Some((2185, 2))
+        );
+        assert_eq!(hunk_removed("@@ -7 +7,3 @@"), Some((7, 1)));
+        assert_eq!(hunk_removed("@@ -0,0 +1 @@"), None);
         let subject = Regex::new(r"^([A-Z][A-Z0-9_]+):\s*(.*)$").unwrap();
         let pr_ref = Regex::new(r"\s*\(#(\d+)\)\s*$").unwrap();
         let raw = "abc123\0Ann\02026-09-29\0FIX: Stop the drift (#44134)\0Why it drifted.\n\x1f\ndiff --git a/app/models/post.rb b/app/models/post.rb\nindex 1..2 100644\n--- a/app/models/post.rb\n+++ b/app/models/post.rb\n@@ -1 +1 @@\n-  def old_cook\n+  def cook\n+    SiteSetting.max_post_length\ndiff --git a/db/migrate/20260929_add_x.rb b/db/migrate/20260929_add_x.rb\nnew file mode 100644\n--- /dev/null\n+++ b/db/migrate/20260929_add_x.rb\n@@ -0,0 +1 @@\n+    add_column :posts, :x, :text\n";
@@ -254,6 +283,8 @@ mod tests {
         assert_eq!(c.files[0].added, 2);
         assert_eq!(c.files[0].deleted, 1);
         assert_eq!(c.files[1].status, 'A');
+        assert_eq!(c.files[0].removed, vec![(1, 1)]);
+        assert!(c.files[1].removed.is_empty());
         let names: Vec<(&str, &str, &str)> = c
             .symbols
             .iter()

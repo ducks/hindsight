@@ -88,7 +88,9 @@ hindsight lint    # broken links + index coverage check
 hindsight path    # print the resolved corpus path
 
 hindsight extract <repo> [--name n] [--limit n]     # index a git history
-hindsight git <name> stats|show|find|cochange|fixes # query it
+hindsight git <name> stats|show|find|cochange       # query it
+hindsight git <name> blame                          # who wrote what each fix removed
+hindsight git <name> fixes|undone                   # correction pairs from that
 ```
 
 `extract` is for a source too big to read: it parses a repository's
@@ -98,6 +100,12 @@ commits ever did X" at ingest time. Agents then write pattern and area
 pages from the answers, following
 [agents/git/ingester](agents/git/ingester/SKILL.md). Discourse core's
 last 5000 commits index in about fifteen seconds.
+
+`blame` is the second pass: for every fix commit it asks git who wrote
+the lines the fix removed, so `fixes` pairs each fix with the change it
+corrected (weighted by lines) and `undone <sha>` lists the later fixes
+that corrected a given commit. Pairing on lines rather than shared files
+is what keeps a large refactor from pairing with everything after it.
 
 Register with Claude Code:
 
@@ -116,5 +124,6 @@ directory). No LLM inside; the calling agent does the reasoning.
 - [x] `hindsight init` - scaffold a corpus directory
 - [x] MCP server (stdio): `search`, `get_page`, `list` over a corpus
 - [x] `hindsight extract`: git history as a queryable raw index
+- [x] `hindsight git blame`: correction pairs by line provenance
 - [ ] Remote transport (HTTP) + auth, for hosting a central corpus
 - [ ] Captain Hindsight: alert-driven investigation agent built on top
