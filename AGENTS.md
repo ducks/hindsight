@@ -29,8 +29,9 @@ public.
 
 ## Three layers
 
-1. `<corpus>/raw/` - immutable source dumps (Discourse topics as JSON).
-   Never edit these.
+1. `<corpus>/raw/` - immutable source dumps (Discourse topics as JSON),
+   or for a source too large to dump, a mechanical index the tool
+   builds (`raw/git/<name>.sqlite`). Never edit these by hand.
 2. `<corpus>/wiki/` - the knowledge base. Markdown pages written and
    maintained by agents, readable by humans. This is the product.
 3. `AGENTS.md` - this schema. Co-evolves with the wiki.
@@ -113,7 +114,8 @@ ask: does this incident update a playbook?
 
 ### System page (`systems/<name>.md`)
 
-A host, cluster, or service that has appeared in more than one incident.
+A host, cluster, or service that has appeared in more than one incident,
+or for a codebase corpus, a subsystem with a history worth knowing.
 Role, known weaknesses, incident history (same link-list style as patterns).
 Don't create system pages for one-off mentions; the incident page suffices.
 
@@ -177,8 +179,13 @@ change.
 Current sources:
 [discourse](agents/discourse/ingester/SKILL.md),
 [files](agents/files/ingester/SKILL.md),
+[git](agents/git/ingester/SKILL.md),
 [github](agents/github/ingester/SKILL.md),
 [pagerduty](agents/pagerduty/ingester/SKILL.md).
+
+A source too large to read in full (a git history) gets a mechanical
+index under `raw/` instead of a dump, built by the tool and queried at
+ingest time. The wiki layer does not change.
 
 ## Operations
 

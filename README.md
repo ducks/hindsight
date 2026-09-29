@@ -86,7 +86,18 @@ hindsight init    # scaffold a corpus directory
 hindsight serve   # MCP server (stdio) over the corpus
 hindsight lint    # broken links + index coverage check
 hindsight path    # print the resolved corpus path
+
+hindsight extract <repo> [--name n] [--limit n]     # index a git history
+hindsight git <name> stats|show|find|cochange|fixes # query it
 ```
+
+`extract` is for a source too big to read: it parses a repository's
+history into `raw/git/<name>.sqlite` (commits, files, and the symbols
+each change added or removed), and the `git` subcommands answer "which
+commits ever did X" at ingest time. Agents then write pattern and area
+pages from the answers, following
+[agents/git/ingester](agents/git/ingester/SKILL.md). Discourse core's
+last 5000 commits index in about fifteen seconds.
 
 Register with Claude Code:
 
@@ -104,5 +115,6 @@ directory). No LLM inside; the calling agent does the reasoning.
 - [x] Ingest the backlog of raw incidents, prove the format
 - [x] `hindsight init` - scaffold a corpus directory
 - [x] MCP server (stdio): `search`, `get_page`, `list` over a corpus
+- [x] `hindsight extract`: git history as a queryable raw index
 - [ ] Remote transport (HTTP) + auth, for hosting a central corpus
 - [ ] Captain Hindsight: alert-driven investigation agent built on top
