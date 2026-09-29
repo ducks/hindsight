@@ -104,11 +104,7 @@ impl Corpus {
                 continue;
             }
 
-            let rel = p
-                .strip_prefix(&wiki)
-                .unwrap_or(&p)
-                .display()
-                .to_string();
+            let rel = p.strip_prefix(&wiki).unwrap_or(&p).display().to_string();
             let title = page_title(&content).unwrap_or_default();
 
             let mut snips = Vec::new();
@@ -122,7 +118,13 @@ impl Corpus {
                 }
             }
 
-            let entry = format!("{} - {} (score {})\n{}", rel, title, score, snips.join("\n"));
+            let entry = format!(
+                "{} - {} (score {})\n{}",
+                rel,
+                title,
+                score,
+                snips.join("\n")
+            );
             if counts.iter().all(|c| *c > 0) {
                 full.push((score, entry));
             } else {
@@ -131,7 +133,10 @@ impl Corpus {
         }
 
         let (mut hits, note) = if full.is_empty() {
-            (partial, "(no page matched every term; showing partial matches)\n\n")
+            (
+                partial,
+                "(no page matched every term; showing partial matches)\n\n",
+            )
         } else {
             (full, "")
         };
@@ -238,12 +243,11 @@ pub fn lint(c: &Corpus) -> bool {
 
     for p in &pages {
         let content = fs::read_to_string(p).unwrap_or_default();
-        let rel = p
-            .strip_prefix(&wiki)
-            .unwrap_or(p)
-            .display()
-            .to_string();
-        let dir = p.parent().map(Path::to_path_buf).unwrap_or_else(|| wiki.clone());
+        let rel = p.strip_prefix(&wiki).unwrap_or(p).display().to_string();
+        let dir = p
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| wiki.clone());
 
         for link in extract_links(&content) {
             if !dir.join(&link).exists() {
