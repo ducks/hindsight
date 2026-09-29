@@ -1,3 +1,4 @@
+mod blame;
 mod corpus;
 mod git;
 mod index;
@@ -26,8 +27,13 @@ Commands:
   git <name> show <sha>
   git <name> find [--prefix P] [--added kind[:glob]]... [--touches glob]... [--limit n]
   git <name> cochange <glob> [--limit n]
-  git <name> fixes [--window days] [--touches glob] [--limit n]
-          Query an extracted repository.
+  git <name> blame [--limit n] [--jobs n] [--repo path]
+          Blame the lines each fix removed onto the commits that wrote
+          them; incremental, newest fixes first.
+  git <name> fixes [--touches glob] [--window days] [--limit n]
+  git <name> undone <sha>
+          Correction pairs from the blame data: what each fix corrected,
+          and which later fixes corrected a given commit.
 
 Corpus resolution order:
   --data flag, $HINDSIGHT_DATA, $XDG_DATA_HOME/hindsight,
@@ -151,10 +157,18 @@ fn git_query(corpus: &Corpus, args: &[String]) -> Result<(), String> {
             "no index for {name}; run: hindsight extract <repo> --name {name}"
         ));
     }
-    let idx = index::Index::open(&path)?;
+    let mut idx = index::Index::open(&path)?;
     let (pos, found) = flags(
         &args[1..],
-        &["--prefix", "--added", "--touches", "--limit", "--window"],
+        &[
+            "--prefix",
+            "--added",
+            "--touches",
+            "--limit",
+            "--window",
+            "--jobs",
+            "--repo",
+        ],
     );
     let limit = flag(&found, "--limit")
         .and_then(|l| l.parse().ok())
@@ -169,13 +183,23 @@ fn git_query(corpus: &Corpus, args: &[String]) -> Result<(), String> {
             limit,
         )?,
         Some("cochange") => idx.cochange(pos.get(1).ok_or("cochange needs a path glob")?, limit)?,
+        Some("blame") => {
+            let jobs = flag(&found, "--jobs")
+                .and_then(|j| j.parse().ok())
+                .unwrap_or(8);
+            let repo = flag(&found, "--repo").map(PathBuf::from);
+            let limit = flag(&found, "--limit").and_then(|l| l.parse().ok());
+            let (fixes, rows) = idx.blame(repo.as_deref(), limit, jobs)?;
+            format!("{fixes} fix commits blamed, {rows} origin rows")
+        }
         Some("fixes") => {
-            let window = flag(&found, "--window")
-                .and_then(|w| w.parse().ok())
-                .unwrap_or(30);
+            let window = flag(&found, "--window").and_then(|w| w.parse().ok());
             idx.fixes(window, flag(&found, "--touches"), limit)?
         }
-        _ => return Err("git subcommands: stats, show, find, cochange, fixes".into()),
+        Some("undone") => idx.undone(pos.get(1).ok_or("undone needs a sha")?, limit)?,
+        _ => {
+            return Err("git subcommands: stats, show, find, cochange, blame, fixes, undone".into())
+        }
     };
     println!("{out}");
     Ok(())

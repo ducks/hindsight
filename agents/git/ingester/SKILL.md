@@ -10,8 +10,9 @@ bodies that say why, PR numbers. Discourse core is the reference case.
 The corpus procedure (which pages to write and update) is AGENTS.md's
 Ingest operation; this skill covers the git-specific parts.
 
-Status: exercised against Discourse core (last 5000 commits) to write
-one pattern page; the full-history and area-page paths are guidance.
+Status: exercised against Discourse core (last 5000 commits, blame
+pass included) to write one pattern page; the full-history and
+area-page paths are guidance.
 
 ## The raw layer is an index, not a dump
 
@@ -42,9 +43,18 @@ hindsight git discourse stats
 - `cochange <glob>` lists files that change alongside matching files.
   This is the map of what a change to one file usually drags along
   (its spec, its serializer, the locale file).
-- `fixes [--touches glob] [--window days]` pairs FIX commits with an
-  earlier feature-ish commit on the same file. Noisy: large commits
-  pair with everything; treat a pair as a lead, then read both.
+- `blame` is a second pass to run after extract: for each FIX,
+  BUGFIX, and SECURITY commit it blames the removed lines on the
+  commits that wrote them (`git blame -w` on the parent, restricted
+  to the removed ranges). Incremental, newest fixes first, about half
+  a second per file per fix; locales and lock files are skipped.
+- `fixes [--touches glob] [--window days]` then lists correction
+  pairs: each fix with the commits that wrote the lines it removed,
+  weighted by lines. An origin marked "not indexed" is older than
+  the extracted range; extract further back to name it.
+- `undone <sha>` is the other direction: the later fixes that removed
+  lines a commit wrote, which is what a commit got wrong. `show` also
+  prints both directions for one commit.
 
 Then read the actual diff with `git show` for the hunks a page needs
 to quote. The index locates; git explains.
@@ -59,8 +69,9 @@ to quote. The index locates; git explains.
   are a pattern.
 - **Area page** (in `systems/`): a subsystem with a history worth
   knowing (the guardian, TopicQuery, the stylesheet pipeline). Role,
-  known weaknesses from its FIX commits, files that co-change with it,
-  and a dated history of the changes that shaped it.
+  known weaknesses from `fixes --touches` on its files, what a change
+  to it drags along from `cochange`, and a dated history of the
+  changes that shaped it.
 - No page per commit. A commit is a citation, not a unit of ingestion.
 
 ## Frontmatter and citations
