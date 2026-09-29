@@ -91,3 +91,6 @@ index in the Detection section so an agent can rerun the query.
   files but contribute no symbols.
 - Symbol extraction is line-level regex, so a def moved between files
   looks like a delete and an add; confirm with `git show`.
+- Blame ignores whitespace, but a reformatting commit that reflowed
+  lines (Discourse's 2023 syntax_tree sweep) still appears as an
+  origin. Read past it to the commit that wrote the logic.
